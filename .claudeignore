@@ -1,0 +1,44 @@
+# Dependencies
+vendor/
+
+# Secrets & local config
+.env
+.env.local
+.env.*.local
+
+# Fly.io — secrets are never in source, but ignore the whole file to be safe
+fly.toml
+
+# Build output
+bin/
+dist/
+*.exe
+*.test
+*.out
+
+# Generated files
+*.pb.go
+*_gen.go
+*_generated.go
+mock_*.go
+mocks/
+
+# Test fixtures containing real data
+testdata/real_*
+testdata/fixtures/live_*
+internal/testutil/snapshots/
+
+# IDE & OS noise
+.DS_Store
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# Go cache / coverage
+coverage.out
+coverage.html
+*.prof
+
+# Logs
+*.log
