@@ -14,8 +14,8 @@ Table field names use **snake_case**. Canonical fields (defined as constants in 
 | `quantity` | Number | `FieldQuantity` |
 | `avg_price` | Currency | `FieldAvgPrice` |
 | `current_price` | Currency | `FieldCurrentPrice` |
-| `pnl` | Currency | `FieldPnl` |
-| `pnl_pct` | Percent | `FieldPnlPct` |
+| `pnl` | Currency | `FieldPnL` |
+| `pnl_pct` | Percent | `FieldPnLPct` |
 | `period` | Single select (`1d`,`1w`,`1m`,`3m`,`1y`,`max`) | `FieldPeriod` |
 
 ## When writing Airtable infrastructure code

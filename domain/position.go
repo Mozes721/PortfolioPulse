@@ -24,5 +24,6 @@ type Position struct {
 type Snapshot struct {
 	Date      time.Time     `json:"date"`
 	Session   MarketSession `json:"session"`
+	Period    Period        `json:"period"`
 	Positions []Position    `json:"positions"`
 }

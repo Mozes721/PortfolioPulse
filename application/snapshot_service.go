@@ -47,6 +47,7 @@ func (s *SnapshotService) Run(ctx context.Context, session domain.MarketSession)
 	snap := domain.Snapshot{
 		Date:      time.Now().UTC(),
 		Session:   session,
+		Period:    domain.Period1D,
 		Positions: positions,
 	}
 

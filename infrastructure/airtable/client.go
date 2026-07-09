@@ -45,6 +45,7 @@ func (c *Client) Append(ctx context.Context, s domain.Snapshot) error {
 				domain.FieldTicker:       p.Ticker,
 				domain.FieldDate:         s.Date.UTC().Format("2006-01-02"),
 				domain.FieldSession:      string(s.Session),
+				domain.FieldPeriod:       string(s.Period),
 				domain.FieldQuantity:     p.Quantity,
 				domain.FieldAvgPrice:     p.AvgPrice,
 				domain.FieldCurrentPrice: p.CurrentPrice,
@@ -83,30 +84,46 @@ func (c *Client) createRecords(ctx context.Context, records []record) error {
 	}
 
 	url := fmt.Sprintf("%s/%s/%s", baseURL, c.baseID, c.tableName)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
-	if err != nil {
-		return fmt.Errorf("airtable.createRecords build request: %w", err)
-	}
-	req.Header.Set("Authorization", "Bearer "+c.apiKey)
-	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return fmt.Errorf("airtable.createRecords: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		var apiErr struct {
-			Error struct {
-				Type    string `json:"type"`
-				Message string `json:"message"`
-			} `json:"error"`
+	var lastErr error
+	for attempt := range 2 {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
+		if err != nil {
+			return fmt.Errorf("airtable.createRecords build request: %w", err)
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&apiErr)
-		return fmt.Errorf("airtable.createRecords: HTTP %d — %s: %s",
-			resp.StatusCode, apiErr.Error.Type, apiErr.Error.Message)
+		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := c.http.Do(req)
+		if err != nil {
+			lastErr = fmt.Errorf("airtable.createRecords: %w", err)
+			if attempt == 0 {
+				continue
+			}
+			return lastErr
+		}
+		defer resp.Body.Close() //nolint:gocritic // defer in loop is intentional: each iteration has its own resp
+
+		if resp.StatusCode >= 500 && attempt == 0 {
+			// Retry once on transient server error.
+			lastErr = fmt.Errorf("airtable.createRecords: HTTP %d (retrying)", resp.StatusCode)
+			continue
+		}
+
+		if resp.StatusCode >= 400 {
+			var apiErr struct {
+				Error struct {
+					Type    string `json:"type"`
+					Message string `json:"message"`
+				} `json:"error"`
+			}
+			_ = json.NewDecoder(resp.Body).Decode(&apiErr) //nolint:errcheck // best-effort: enrich error message only
+			return fmt.Errorf("airtable.createRecords: HTTP %d — %s: %s",
+				resp.StatusCode, apiErr.Error.Type, apiErr.Error.Message)
+		}
+
+		return nil
 	}
 
-	return nil
+	return lastErr
 }

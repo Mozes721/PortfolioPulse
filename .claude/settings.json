@@ -1,0 +1,56 @@
+{
+  "extraKnownMarketplaces": {
+    "upstash": {
+      "source": {
+        "source": "github",
+        "repo": "upstash/skills"
+      }
+    }
+  },
+  "enabledPlugins": ["upstash@upstash"],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/go-fmt-autofix.sh\"",
+            "statusMessage": "gofmt -s -w"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/commit-msg-check.sh\"",
+            "timeout": 15,
+            "statusMessage": "Checking commit message format"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/go-build-check.sh\"",
+            "timeout": 120,
+            "statusMessage": "Running go build"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/go-lint-check.sh\"",
+            "timeout": 120,
+            "statusMessage": "Running golangci-lint"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/go-prepush-check.sh\"",
+            "timeout": 180,
+            "statusMessage": "Running go vet + go test"
+          }
+        ]
+      }
+    ]
+  }
+}

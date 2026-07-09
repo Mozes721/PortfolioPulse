@@ -29,6 +29,7 @@ Violating any rule is a hard error — do not proceed without fixing it.
 - `cmd/` — `main.go` and cron entry points. Thin: load config, wire dependencies, call application layer, exit.
 - `config/` — reads env vars and returns a typed config struct. No business logic.
 - Cross-layer imports: `cmd` may import `application`, `config`. `application` may import `domain`. `infrastructure` may import `domain`. `domain` imports nothing outside stdlib. Circular imports are forbidden.
+- For the full checklist when adding a new domain concept, naming conventions, and code patterns: use the `/ddd-go` skill.
 
 ## Trading212 API
 
@@ -60,6 +61,7 @@ Violating any rule is a hard error — do not proceed without fixing it.
 - All Airtable field names use **snake_case** (e.g. `avg_price`, `pnl_pct`, `current_price`).
 - Never use camelCase or PascalCase for Airtable field names.
 - Field names are defined as typed constants in `domain/fields.go`; raw string literals are not permitted in infrastructure code.
+- For the full field schema, MCP tool usage order, and infrastructure code rules: use the `/airtable` skill.
 
 ## Market Hours Awareness
 
