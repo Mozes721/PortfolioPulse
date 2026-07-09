@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "upstash": {
+      "source": {
+        "source": "github",
+        "repo": "upstash/skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "upstash@upstash": true
+  }
+}
