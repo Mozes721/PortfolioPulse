@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse — Bash(git commit *)
-# Validates inline -m "..." commit messages against Conventional Commits.
-# HEREDOC / multi-line commit bodies are silently skipped (can't be parsed from the command string).
+# Validates commit messages against Conventional Commits.
+# Handles both inline -m "..." and HEREDOC (-m "$(cat <<'EOF' ... EOF)") forms.
 
 set -euo pipefail
 
@@ -18,17 +18,33 @@ if [[ "$CMD" != *"git commit"* ]]; then
   exit 0
 fi
 
-# Extract the first -m "..." value (skip HEREDOC commits — not parseable here).
+# Extract the subject line from either commit form:
+#   inline:  git commit -m "type: subject"
+#   heredoc: git commit -m "$(cat <<'EOF'\ntype: subject\n...\nEOF\n)"
 MSG=$(echo "$CMD" | python3 -c "
 import sys, re
+
 cmd = sys.stdin.read()
-m = re.search(r'-m\s+[\"'"'"']([^\"'"'"']+)[\"'"'"']', cmd)
-if m:
-    print(m.group(1).split('\n')[0].strip())
+
+# 1. Try to extract heredoc body between EOF markers.
+heredoc = re.search(r\"<<'?EOF'?\s*\n(.*?)\nEOF\", cmd, re.DOTALL)
+if heredoc:
+    # First non-empty line is the subject.
+    for line in heredoc.group(1).splitlines():
+        line = line.strip()
+        if line:
+            print(line)
+            break
+    sys.exit(0)
+
+# 2. Fall back to inline -m '...' or -m \"...\"
+inline = re.search(r'-m\s+[\"\']([^\"\']+)[\"\']', cmd)
+if inline:
+    print(inline.group(1).split('\n')[0].strip())
 " 2>/dev/null || true)
 
 if [[ -z "$MSG" ]]; then
-  # HEREDOC or unparseable — allow through.
+  # Unparseable form — allow through rather than false-block.
   exit 0
 fi
 
