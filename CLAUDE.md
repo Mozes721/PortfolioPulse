@@ -92,6 +92,16 @@ Required env vars:
 - **Upstash Redis** — accessed via REST (not TCP); use the official `upstash/go-redis` SDK or plain HTTP with bearer token.
 - **Local dev** — `REDIS_URL` points to a local Redis instance; the config layer selects Upstash vs local based on presence of `UPSTASH_REDIS_REST_URL`.
 
+## Agents
+
+Three specialized subagents live in `.claude/agents/`, split by data source so each has a narrow, low-risk tool scope. Each agent's own frontmatter `description` is what Claude Code actually matches against to decide when to delegate — this list is just a map:
+
+- **ai-broker** — live Trading212 API reads only (current positions/P&L right now). Uses a read-only-scoped API key.
+- **data-agent** — historical/cached data: Airtable (permanent history) and Upstash Redis (hot cache).
+- **deployment-agent** — Fly.io app status/machines/secrets/deploys.
+
+None of them overlap in scope. If a question spans more than one (e.g. "does Airtable match what Trading212 shows live right now"), that's a sign to invoke more than one agent and reconcile the answers yourself rather than extending one agent's scope into another's.
+
 ## YouTube Tutorial Series
 
 This project is the subject of a step-by-step Claude Code tutorial series. Each video introduces a new Claude Code feature. Keep code pedagogically clear; avoid premature abstraction.
